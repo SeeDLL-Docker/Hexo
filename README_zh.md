@@ -1,17 +1,17 @@
 Hexo 🐋
 ============
 
-English | [简体中文](./README_zh.md)
+[English](./README.md) | 简体中文
 
-Dockerfile for Hexo with Hexo Admin
+Docker 版的 Hexo 和 Hexo Admin
 
-This is a Hexo using the latest version of Node.js, which is currently Node.js 20.
+这是一个使用最新版Node.js 的Hexo，当前版本是 Node.js 20
 
 [https://github.com/SeeDLL/Ubuntu_Docker](https://github.com/SeeDLL/Ubuntu_Docker)
 
 The image is available directly from [Docker Hub](https://hub.docker.com/r/seedll/hexo/)
 
-### Appreciation to the following projects:
+### 感谢以下项目:
 
 Node.js :
 [https://hub.docker.com/_/node ](https://hub.docker.com/_/node "https://hub.docker.com/_/node")
@@ -19,25 +19,25 @@ Node.js :
 Hexo Blog:
 [https://hexo.io ](https://hexo.io "https://hexo.io")  
 
-### Notes:
+### 注意：
 
-   * If the directory specified by -v is an empty directory, this container will automatically initialize a complete set of Hexo configuration and pages.  
+   * 如果 -v 指定的目录是空目录，本容器会自动初始化全新的完整的 Hexo 相关配置和页面。
 
-   * If the directory specified by -v already has existing Hexo files, the container will not re-initialize Hexo, but will run the Hexo in that directory directly.
+   * 如果 -v 指定的目录已经有现成的 Hexo 文件，本容器不会在初始化 Hexo ，而是会直接运行目录中的 Hexo。
 
-   * If the directory specified by -v already has a requirements.txt, it will install the modules required in requirements.txt.
+   * 如果 -v 指定的目录已经有 requirements.txt ，会安装 requirements.txt  中所需的模块。
 
-   * If you need to check and upgrade the hexo and required module versions when the container starts up each time, you can specify APP_CHECK_UPDATE=true to achieve checking and upgrading.
+   * 如果需要每次容器启动的时候检查并升级 hexo和所需模块版本，可以指定 APP_CHECK_UPDATE=true 即可实现检查并升级。
 
-### Getting Started：
+### docker命令行设置：
 
-1. Downloading the image
+1. 下载镜像
 
-    |Image source|Command|
+    |镜像源|命令|
     |:-|:-|
     |DockerHub|docker pull seedll/hexo:latest|
 
-2. Creating the hexo container
+2. 创建 aliyunpan 容器
 
         docker create \
            --name=hexo \
@@ -50,25 +50,25 @@ Hexo Blog:
            --restart unless-stopped \
            seedll/hexo:latest
 
-3. run
+3. 运行
 
        docker start hexo
 
-4. stop
+4. 停止
 
        docker stop hexo
 
-5. delete container
+5. 删除容器
 
        docker rm hexo
 
-6. delete image
+6. 删除镜像
 
        docker image rm seedll/hexo:latest
 
-### Environment Variable Settings:
+### 变量参数设置:
 
-|Variable|Description|
+|参数|说明|
 |:-|:-|
 | `-e HEXO_SERVER_PORT` | hexo server port(default port 4000) |
 | `-e APP_CHECK_UPDATE` | check and update package version |
