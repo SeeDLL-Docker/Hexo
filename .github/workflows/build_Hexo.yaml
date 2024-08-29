@@ -2,8 +2,13 @@
 name: Debian_Hexo image
 # Controls when the action will run.
 on:
+  push:
+    branches:
+      - main  # 或者是你希望监听的分支
   schedule:
-    - cron: "0 20 15 * *"
+    - cron: "0 20 5 * *"   # 每月5日UTC时间晚上8点
+    - cron: "0 20 15 * *"  # 每月15日UTC时间晚上8点
+    - cron: "0 20 25 * *"  # 每月25日UTC时间晚上8点
     
 jobs:
   buildx:
