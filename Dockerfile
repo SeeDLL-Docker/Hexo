@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim
+FROM node:24-bookworm-slim
 
 ENV HEXO_SERVER_PORT \
     APP_CHECK_UPDATE \
