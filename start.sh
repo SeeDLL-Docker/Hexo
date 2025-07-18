@@ -1,14 +1,24 @@
 #!/bin/bash
 set -euo pipefail
 
-# ========================
-# 多语言系统初始化
-# ========================
+function t() {
+    local key="$1"
+    local lang="${LANG:-en_US.UTF-8}"
+    local text="${I18N[$key]}"
+
+    [[ -z "$text" ]] && { echo "[MISSING_TRANSLATION:$key]"; return; }
+
+    case "${lang:0:2}" in
+        zh) echo "$text" | sed -E 's/.*zh-cn:([^|]+).*/\1/' ;;
+        *)  echo "$text" | sed -E 's/.*en:([^|]+).*/\1/' ;;
+    esac
+}
+
 function init_i18n() {
     declare -gA I18N=(
         # 基础提示
-        ["start"]="zh-cn:开始执行脚本 | en:Starting script"
-        ["error_dir"]="zh-cn:错误：无法访问工作目录 | en:Error: Cannot access working directory"
+        ["start"]=t "zh-cn:开始执行脚本 | en:Starting script"
+        ["error_dir"]= t "zh-cn:错误：无法访问工作目录 | en:Error: Cannot access working directory"
         ["skip"]="zh-cn:跳过 | en:Skipped"
 
         # 阶段提示
@@ -23,9 +33,15 @@ function init_i18n() {
         ["install_deps"]="zh-cn:→ 安装基础依赖 | en:→ Installing base dependencies"
         ["install_ncu"]="zh-cn:→ 安装 npm-check-updates | en:→ Installing npm-check-updates"
 
-        # 自定义脚本
-        ["script_found"]="zh-cn:→ 执行脚本: %s | en:→ Executing script: %s"
-        ["script_not_found"]="zh-cn:→ 未找到脚本: %s | en:→ Script not found: %s"
+        # 自定义脚本相关提示
+        ["script_disabled"]="zh-cn:→ 自定义脚本功能未启用 | en:→ Custom scripts DISABLED"
+        ["script_exec"]="zh-cn:✓ 执行脚本: %s | en:✓ Executing: %s"
+        ["script_exec_over"]="zh-cn:✓ 脚本执行完成: %s | en:✓ Executing Over: %s"
+        ["script_not_found"]="zh-cn:× 脚本不存在: %s | en:× Script not found: %s"
+        ["script_not_permitted"]="zh-cn:× 脚本不可执行: %s | en:× Script not executable: %s"
+        ["script_invalid_name"]="zh-cn:× 非法脚本名称: %s | en:× Invalid script name: %s"
+        ["script_exec_failed"]="zh-cn:× 脚本执行失败: %s | en:× Script execution failed: %s"
+
 
         # Hexo 操作
         ["hexo_build"]="zh-cn:→ 生成静态文件 | en:→ Building static files"
@@ -34,47 +50,25 @@ function init_i18n() {
     )
 }
 
-function t() {
-    local key="$1"
-    local lang="${LANG:-en_US.UTF-8}"
-    local text="${I18N[$key]}"
-
-    [[ -z "$text" ]] && { echo "[MISSING_TRANSLATION:$key]"; return; }
-
-    case "${lang:0:2}" in
-        zh) echo "$text" | sed -E 's/.*zh-cn:([^|]+).*/\1/' ;;
-        *)  echo "$text" | sed -E 's/.*en:([^|]+).*/\1/' ;;
-    esac
-}
-
-
-# ========================
-# 核心配置
-# ========================
 WORKDIR="/app"
+CUSTOM_SCRIPTS_DIR="/custom_scripts"
 cd "$WORKDIR" || { echo "$(t error_dir) $WORKDIR" >&2; exit 1; }
 
-# ========================
-# 阶段实现
-# ========================
 function setup_environment() {
     echo "$(t phase_env)"
 
-    # Hexo 初始化
     if [ ! "$(ls -A .)" ]; then
         echo "$(t init_empty)"
         hexo init .
         echo "$(t init_hexo_done)"
     fi
 
-    # 依赖安装
     if [ ! -d "node_modules" ]; then
         echo "$(t install_deps)"
         npm install
         npm install --save hexo-admin
     fi
 
-    # 全局工具检查
     if ! npm list -g npm-check-updates &>/dev/null; then
         echo "$(t install_ncu)"
         npm install -g npm-check-updates
@@ -110,14 +104,49 @@ function setup_ssh_config() {
 }
 
 function run_custom_script() {
-    local script_name="$1"
-    if [ -f "$script_name" ]; then
-        echo "$(printf "$(t script_found)" "$script_name")"
-        chmod +x "$script_name"
-        ./"$script_name"
-    else
-        echo "$(printf "$(t script_not_found)" "$script_name")"
+    local script_name="${1:-}"
+    [[ -z "$script_name" ]] && return 0
+
+    [[ "${CUSTOM_SCRIPTS:-false}" != "true" ]] && {
+        t script_disabled >&2
+        return 0
+    }
+
+    local script_path="$CUSTOM_SCRIPTS_DIR/$script_name"
+    
+    [[ "$script_name" == */* ]] && {
+        printf "$(t script_invalid_name)\n" "$script_name" >&2
+        return 0
+    }
+
+    [[ ! -f "$script_path" ]] && {
+        printf "$(t script_not_found)\n" "$script_path" >&2
+        return 0
+    }
+
+    [[ ! -x "$script_path" ]] && ! chmod +x "$script_path" 2>/dev/null && {
+        printf "$(t script_not_permitted)\n" "$script_path" >&2
+        return 1
+    }
+
+    local output exit_code
+    output=$(
+        (
+            cd "$CUSTOM_SCRIPTS_DIR" || exit 1
+            printf "$(t script_exec)\n" "$script_path" >&2
+            ./"$script_name"
+        ) 2>&1
+    )
+    exit_code=$?
+
+    echo "$output"
+
+    if [[ $exit_code -ne 0 ]]; then
+        printf "$(t script_exec_failed)\n" "$script_path" >&2
+        return $exit_code
     fi
+
+    return 0
 }
 
 function execute_hexo() {
@@ -139,16 +168,13 @@ function execute_hexo() {
     esac
 }
 
-# ========================
-# 主流程控制
-# ========================
 function main() {
     init_i18n
 	echo "$(t start)"
     setup_environment
-    run_custom_script "custom_script1.sh"
+    run_custom_script "${CUSTOM_SCRIPT1:-}"
     install_requirements
-    run_custom_script "custom_script2.sh"
+    run_custom_script "${CUSTOM_SCRIPT2:-}"
     setup_ssh_config
     execute_hexo
 }
