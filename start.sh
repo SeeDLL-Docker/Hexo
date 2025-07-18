@@ -17,8 +17,8 @@ function t() {
 function init_i18n() {
     declare -gA I18N=(
         # 基础提示
-        ["start"]=t "zh-cn:开始执行脚本 | en:Starting script"
-        ["error_dir"]= t "zh-cn:错误：无法访问工作目录 | en:Error: Cannot access working directory"
+        ["start"]="zh-cn:开始执行脚本 | en:Starting script"
+        ["error_dir"]="zh-cn:错误：无法访问工作目录 | en:Error: Cannot access working directory"
         ["skip"]="zh-cn:跳过 | en:Skipped"
 
         # 阶段提示
