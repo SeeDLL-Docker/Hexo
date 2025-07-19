@@ -42,6 +42,7 @@ Hexo Blog:
       -e CUSTOM_SCRIPT2="xx2.sh" \
       -e GIT_USER=xxxxxx \
       -e GIT_EMAIL=xxxxxx@gmail.com \
+      -e LANG=h-cn \
       -v {your hexo dir path}:/app \
       -v {your custom script dir path}:/custom_scripts \
       --restart unless-stopped \
@@ -61,6 +62,7 @@ Hexo Blog:
 | -e GIT_EMAIL        | 配置 Git 邮箱                                                |
 | /app                | 容器中，存放 Hexo 项目源文件的目录                           |
 | /custom_scripts     | 容器中，存放自定义脚本的目录                                 |
+| -e LANG=zh-cn | 容器中，配置项目的显示语言：zh-cn：显示中文。en_US：显示英文 |
 
 
 

@@ -60,6 +60,7 @@ Hexo Blog Framework:
    | `GIT_EMAIL`          | Git email configuration.                                                    |
    | `/app`               | Host directory bound to Hexo’s working directory in the container.          |
    | `/custom_scripts`    | Host directory for custom scripts.                                          |
+   | LANG=zh-cn    |  Configures display language: zh-cn for Chinese, en_US for English |
 
 ---
 
