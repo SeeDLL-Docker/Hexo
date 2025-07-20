@@ -1,7 +1,7 @@
 Hexo 🐋
 ============
 
-[English](./README.md) | 简体中文
+English | (简体中文)(https://github.com/SeeDLL-Docker/Hexo/README_zh.md)
 
 Dockerized Hexo with Hexo Admin
 
